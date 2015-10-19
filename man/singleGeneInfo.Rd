@@ -7,7 +7,7 @@
 singleGeneInfo(geneXml)
 }
 \arguments{
-\item{geneXml}{xml data.}
+\item{geneXml}{Gene xml data.}
 }
 \value{
 A list of gene information.

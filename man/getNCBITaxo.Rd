@@ -4,10 +4,12 @@
 \alias{getNCBITaxo}
 \title{Get NCBI taxonomy information}
 \usage{
-getNCBITaxo(NCBITaxoIDs)
+getNCBITaxo(NCBITaxoIDs, n = 4)
 }
 \arguments{
 \item{NCBITaxoIDs}{A vector of NCBI taxonomy IDs.}
+
+\item{n}{The number of CPUs or processors, and the default value is 4.}
 }
 \value{
 A list containing taxonomy information for each ID.
@@ -19,7 +21,7 @@ NCBI Database API - Get NCBI taxonomy information from given NCBI taxonomy IDs
 Get NCBI taxonomy information.
 }
 \examples{
-threeTax <- getNCBITaxo(c('9606', '511145', '797302'))
+tax3 <- getNCBITaxo(c('9606', '511145', '797302'), n = 2)
 }
 \author{
 Yulong Niu \email{niuylscu@gmail.com}
