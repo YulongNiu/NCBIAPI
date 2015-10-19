@@ -21,7 +21,7 @@
 getNCBITaxo <- function(NCBITaxoIDs, n = 1) {
 
   ## register multiple core
-  registerDoParallel(n)
+  registerDoParallel(cores = n)
 
   ##~~~~~~~~~~~~~~~~~~~~~~~~~EPost~~~~~~~~~~~~~~~~~~~~~~~
   ## compress taxonomy IDs
@@ -131,7 +131,7 @@ singleTaxoInfo <- function(taxoXml) {
 getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1) {
 
   ## register multiple core
-  registerDoParallel(n)
+  registerDoParallel(cores = n)
 
   ##~~~~~~~~~~~~~~~~~~~~~~~~~EPost~~~~~~~~~~~~~~~~~~~~~~~
   ## compress gene IDs
