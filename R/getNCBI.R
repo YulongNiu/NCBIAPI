@@ -3,51 +3,91 @@
 ##' Get NCBI taxonomy information. 
 ##' @title Get NCBI taxonomy information
 ##' @param NCBITaxoIDs A vector of NCBI taxonomy IDs.
+##' @inheritParams getNCBIGenesInfo
 ##' @return A list containing taxonomy information for each ID.
 ##' @examples
-##' threeTax <- getNCBITaxo(c('9606', '511145', '797302'))
+##' tax3 <- getNCBITaxo(c('9606', '511145', '797302'), n = 2)
 ##' @author Yulong Niu \email{niuylscu@@gmail.com}
 ##' @importFrom RCurl postForm
 ##' @importFrom xml2 read_xml xml_children xml_text
+##' @importFrom foreach foreach %do% %dopar%
+##' @importFrom doMC registerDoMC
 ##' @references Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
 ##' @export
 ##'
 ##' 
-getNCBITaxo <- function(NCBITaxoIDs) {
+getNCBITaxo <- function(NCBITaxoIDs, n = 4) {
 
+  ## multiple core
+  registerDoMC(n)
+
+  ##~~~~~~~~~~~~~~~~~~~~~~~~~EPost~~~~~~~~~~~~~~~~~~~~~~~
   ## compress taxonomy IDs
   taxoIDs <- paste(NCBITaxoIDs, collapse = ',')
+  infoPostPara <- list(db = 'taxonomy', id = taxoIDs)
+  infoPost <- EPostNCBI(infoPostPara)
+  ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  ## read in xml content with HTTP POST method
-  urlBase <- 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi'
-  xmlStr <- postForm(uri = urlBase,
-                     db = 'taxonomy',
-                     id = taxoIDs,
-                     retmode = 'xml')
-  taxXML <- read_xml(xmlStr)
+  ##~~~~~~~~~~~~~~~~~~~~~~ESummary~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## For EFetch, the max number in one query is 10,000. The input gene IDs is splited every 500.
+  cutMat <- CutSeqEqu(length(NCBITaxoIDs), 500)
+  ## The start number is from 0.
+  cutMat <- cutMat - 1
 
-  ## extract child node of each tax
-  taxChildren <- xml_children(taxXML)
-  taxList <- lapply(taxChildren, function(x){
+  ## fetch url base
+  fetchUrlBase <- 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi'
+  key = infoPost$QueryKey
+  webEnv = infoPost$WebEnv
 
-    ## all TaxId, all ScientificName, and all Rank
-    xPathVec <- c('.//TaxId', './/ScientificName', './/Rank')
-    allTax <- sapply(xPathVec, function(eachXPath) {
-      eachNodeSet <- xml_find_all(x, eachXPath)
-      eachContent <- xml_text(eachNodeSet)
-    })
+  taxoInfo <- foreach (i = 1:ncol(cutMat), .combine = c) %do% {
+    eachFetchStr <-  postForm(uri = fetchUrlBase,
+                              db = 'taxonomy',
+                              query_key = key,
+                              WebEnv = webEnv,
+                              retstart = cutMat[1, i],
+                              retmax = 500,
+                              retmode = 'xml')
+    eachFetchXml <- read_xml(eachFetchStr)
+    childXml <- xml_find_all(eachFetchXml, 'Taxon')
 
-    ## move input tax to the last
-    allTax <- rbind(allTax[-1, ], allTax[1, ])
-    colnames(allTax) <- c('TaxId', 'ScientificName', 'Rank')
+    eachInfo <- foreach(j = 1 : length(childXml)) %dopar% {
+      
+      singleInfo <- singleTaxoInfo(childXml[[j]])
 
-    return(allTax)
-  })
-
-  names(taxList) <- NCBITaxoIDs
-
-  return(taxList)
+      return(singleInfo)
+    }
+    ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    return(eachInfo)
+  }
+  
+  names(taxoInfo) <- NCBITaxoIDs
+  
+  return(taxoInfo)
 }
+
+
+##' NCBI Database API - Get NCBI taxonomy information from given NCBI taxonomy IDs
+##'
+##' Get taxonomy information form single NCBI taxonomy ID.
+##' @title Get single NCBI taxonomy information
+##' @param taxoXml Taxonomy xml data
+##' @return A matrix of taxonomy information
+##' @author Yulong Niu \email{niuylscu@@gmail.com}
+##' @keywords internal
+##'
+##' 
+singleTaxoInfo <- function(taxoXml) {
+
+  taxoPrefix <- './/'
+  taxoItems <- c('TaxId', 'ScientificName', 'Rank')
+  taxoInfo <- BatchXmlText(taxoXml, taxoPrefix, taxoItems)
+
+  taxoMat <- do.call(cbind, taxoInfo)
+
+  return(taxoMat)
+}
+
+
 
 
 ##' NCBI Database API - Get NCBI gene information from given NCBI gene IDs
@@ -83,6 +123,7 @@ getNCBITaxo <- function(NCBITaxoIDs) {
 ##' 
 getNCBIGenesInfo <- function(NCBIGeneIDs, n = 4) {
 
+  ## multiple core
   registerDoMC(n)
 
   ##~~~~~~~~~~~~~~~~~~~~~~~~~EPost~~~~~~~~~~~~~~~~~~~~~~~
@@ -113,7 +154,7 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, n = 4) {
                               retmax = 500,
                               retmode = 'xml')
     eachFetchXml <- read_xml(eachFetchStr)
-    childXml <- xml_find_all(eachFetchXml, './/DocumentSummary')
+    childXml <- xml_find_all(eachFetchXml, 'DocumentSummarySet/DocumentSummary')
 
     eachInfo <- foreach(j = 1 : length(childXml)) %dopar% {
       
@@ -136,7 +177,7 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, n = 4) {
 ##'
 ##' Get gene information form single NCBI gene ID.
 ##' @title Get single NCBI gene information
-##' @param geneXml xml data.
+##' @param geneXml Gene xml data.
 ##' @return A list of gene information.
 ##' @author Yulong Niu \email{niuylscu@@gmail.com}
 ##' @importFrom xml2 xml_find_all xml_text
@@ -160,7 +201,7 @@ singleGeneInfo <- function(geneXml) {
     locPrefix <- 'GenomicInfo/GenomicInfoType/'
     locItems <- c('ChrLoc', 'ChrAccVer', 'ChrStart', 'ChrStop', 'ExonCount')
     locText <- BatchXmlText(geneXml, locPrefix, locItems)
-    locMat <- t(do.call(rbind, locText))
+    locMat <- do.call(cbind, locText)
 
     ## combine summary and gene location
     geneInfo$GenomicInfo = locMat
