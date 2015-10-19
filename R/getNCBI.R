@@ -6,21 +6,22 @@
 ##' @inheritParams getNCBIGenesInfo
 ##' @return A list containing taxonomy information for each ID.
 ##' @examples
+##' ## with two cores
 ##' tax3 <- getNCBITaxo(c('9606', '511145', '797302'), n = 2)
 ##' @author Yulong Niu \email{niuylscu@@gmail.com}
 ##' @importFrom RCurl postForm
 ##' @importFrom xml2 read_xml xml_children xml_text
 ##' @importFrom foreach foreach %do% %dopar%
-##' @importFrom doMC registerDoMC
+##' @importFrom doParallel registerDoParallel stopImplicitCluster
 ##' @importFrom ParaMisc CutSeqEqu
 ##' @references Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
 ##' @export
 ##'
 ##' 
-getNCBITaxo <- function(NCBITaxoIDs, n = 4) {
+getNCBITaxo <- function(NCBITaxoIDs, n = 1) {
 
-  ## multiple core
-  registerDoMC(n)
+  ## register multiple core
+  registerDoParallel(n)
 
   ##~~~~~~~~~~~~~~~~~~~~~~~~~EPost~~~~~~~~~~~~~~~~~~~~~~~
   ## compress taxonomy IDs
@@ -62,6 +63,9 @@ getNCBITaxo <- function(NCBITaxoIDs, n = 4) {
   }
   
   names(taxoInfo) <- NCBITaxoIDs
+
+  ## stop multiple core
+  stopImplicitCluster()
   
   return(taxoInfo)
 }
@@ -96,7 +100,7 @@ singleTaxoInfo <- function(taxoXml) {
 ##' Get NCBI gene information, including gene name, description, genetic source, aliases, gene location. To retrieve thousands of proteins, use EPost to post record into the web server and then retrieve data using ESummary. If the gene ID is not found, return an error information in the list.
 ##' @title Get NCBI genes information
 ##' @param NCBIGeneIDs A vector of NCBI gene IDs.
-##' @param n The number of CPUs or processors, and the default value is 4.
+##' @param n The number of CPUs or processors, and the default value is 1.
 ##' @return A list containing gene information for each ID. A empty character vector (whose length is 0) will be returned for the items if the contents are not found.
 ##' @examples
 ##' gene3 <- getNCBIGenesInfo(c('100286922', '948242', '15486644'), n = 2)
@@ -104,29 +108,30 @@ singleTaxoInfo <- function(taxoXml) {
 ##' ghostInfo <- getNCBIGenesInfo('111111111', n = 1)
 ##' \dontrun{
 ##' require(KEGGAPI)
-##' ## signle genome
+##' ## signle genome with two plasmids
 ##' smuGenes <- convKEGG('smu', 'ncbi-geneid')
 ##' smuGeneNames <- sapply(strsplit(smuGenes[, 1], split = ':', fixed = TRUE), '[[', 2)
-##' smuInfo <- getNCBIGenesInfo(smuGeneNames)
-##' ## multiple genomes
+##' smuInfo <- getNCBIGenesInfo(smuGeneNames, n = 4)
+##' 
+##' ## two genomes with two plasmids
 ##' draGenes <- convKEGG('dra', 'ncbi-geneid')
 ##' draGeneNames <- sapply(strsplit(draGenes[, 1], split = ':', fixed = TRUE), '[[', 2)
-##' draInfo <- getNCBIGenesInfo(draGeneNames)
+##' draInfo <- getNCBIGenesInfo(draGeneNames, n = 4)
 ##' }
 ##' @author Yulong Niu \email{niuylscu@@gmail.com}
 ##' @importFrom RCurl postForm
 ##' @importFrom xml2 read_xml xml_children
 ##' @importFrom foreach foreach %do% %dopar%
-##' @importFrom doMC registerDoMC
+##' @importFrom doParallel registerDoParallel stopImplicitCluster
 ##' @importFrom ParaMisc CutSeqEqu
 ##' @references Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
 ##' @export
 ##'
 ##' 
-getNCBIGenesInfo <- function(NCBIGeneIDs, n = 4) {
+getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1) {
 
-  ## multiple core
-  registerDoMC(n)
+  ## register multiple core
+  registerDoParallel(n)
 
   ##~~~~~~~~~~~~~~~~~~~~~~~~~EPost~~~~~~~~~~~~~~~~~~~~~~~
   ## compress gene IDs
@@ -170,6 +175,9 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, n = 4) {
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   names(geneInfo) <- NCBIGeneIDs
+
+  ## stop multiple core
+  stopImplicitCluster()
   
   return(geneInfo)
 }

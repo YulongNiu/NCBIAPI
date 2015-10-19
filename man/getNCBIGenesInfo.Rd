@@ -4,12 +4,12 @@
 \alias{getNCBIGenesInfo}
 \title{Get NCBI genes information}
 \usage{
-getNCBIGenesInfo(NCBIGeneIDs, n = 4)
+getNCBIGenesInfo(NCBIGeneIDs, n = 1)
 }
 \arguments{
 \item{NCBIGeneIDs}{A vector of NCBI gene IDs.}
 
-\item{n}{The number of CPUs or processors, and the default value is 4.}
+\item{n}{The number of CPUs or processors, and the default value is 1.}
 }
 \value{
 A list containing gene information for each ID. A empty character vector (whose length is 0) will be returned for the items if the contents are not found.
@@ -26,14 +26,15 @@ gene3 <- getNCBIGenesInfo(c('100286922', '948242', '15486644'), n = 2)
 ghostInfo <- getNCBIGenesInfo('111111111', n = 1)
 \dontrun{
 require(KEGGAPI)
-## signle genome
+## signle genome with two plasmids
 smuGenes <- convKEGG('smu', 'ncbi-geneid')
 smuGeneNames <- sapply(strsplit(smuGenes[, 1], split = ':', fixed = TRUE), '[[', 2)
-smuInfo <- getNCBIGenesInfo(smuGeneNames)
-## multiple genomes
+smuInfo <- getNCBIGenesInfo(smuGeneNames, n = 4)
+
+## two genomes with two plasmids
 draGenes <- convKEGG('dra', 'ncbi-geneid')
 draGeneNames <- sapply(strsplit(draGenes[, 1], split = ':', fixed = TRUE), '[[', 2)
-draInfo <- getNCBIGenesInfo(draGeneNames)
+draInfo <- getNCBIGenesInfo(draGeneNames, n = 4)
 }
 }
 \author{
