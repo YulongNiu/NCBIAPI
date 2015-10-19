@@ -12,6 +12,7 @@
 ##' @importFrom xml2 read_xml xml_children xml_text
 ##' @importFrom foreach foreach %do% %dopar%
 ##' @importFrom doMC registerDoMC
+##' @importFrom ParaMisc CutSeqEqu
 ##' @references Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
 ##' @export
 ##'
@@ -117,6 +118,7 @@ singleTaxoInfo <- function(taxoXml) {
 ##' @importFrom xml2 read_xml xml_children
 ##' @importFrom foreach foreach %do% %dopar%
 ##' @importFrom doMC registerDoMC
+##' @importFrom ParaMisc CutSeqEqu
 ##' @references Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
 ##' @export
 ##'
