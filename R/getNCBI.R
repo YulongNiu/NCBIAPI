@@ -231,7 +231,7 @@ singleGeneInfo <- function(geneXml) {
 ##' Get whole gene annotation form single NCBI genome ID. The locus tag is used as names for each gene.
 ##' @title Get single NCBI whole genomic gene annotation
 ##' @param genomeID Single NCBI genome ID.
-##' @param type "gene" or "CDS".
+##' @param type "gene" or "CDS". The KEGG database use "CDS" as the protein gene count.
 ##' @inheritParams getNCBIGenesInfo
 ##' @return A list of annotation.
 ##' @examples

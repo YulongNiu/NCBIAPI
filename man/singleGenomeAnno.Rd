@@ -9,7 +9,7 @@ singleGenomeAnno(genomeID, type = "CDS", n = 1)
 \arguments{
 \item{genomeID}{Single NCBI genome ID.}
 
-\item{type}{"gene" or "CDS".}
+\item{type}{"gene" or "CDS". The KEGG database use "CDS" as the protein gene count.}
 
 \item{n}{The number of CPUs or processors, and the default value is 1.}
 }
