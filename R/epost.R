@@ -17,7 +17,7 @@
 EPostNCBI <- function(postPara, ...) {
   
   ## NCBI EPost url
-  urlBase <- 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/epost.fcgi'
+  urlBase <- EUrl('epost')
   
   ## HTTP POST with EPost
   postStr <- postForm(uri = urlBase, .params = postPara)

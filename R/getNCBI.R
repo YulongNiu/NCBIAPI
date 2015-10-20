@@ -37,18 +37,18 @@ getNCBITaxo <- function(NCBITaxoIDs, n = 1) {
   cutMat <- cutMat - 1
 
   ## fetch url base
-  fetchUrlBase <- 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi'
+  fetchUrlBase <- EUrl('efetch')
   key = infoPost$QueryKey
   webEnv = infoPost$WebEnv
 
   taxoInfo <- foreach (i = 1:ncol(cutMat), .combine = c) %do% {
-    eachFetchStr <-  postForm(uri = fetchUrlBase,
-                              db = 'taxonomy',
-                              query_key = key,
-                              WebEnv = webEnv,
-                              retstart = cutMat[1, i],
-                              retmax = 500,
-                              retmode = 'xml')
+    eachFetchStr <- postForm(uri = fetchUrlBase,
+                             db = 'taxonomy',
+                             query_key = key,
+                             WebEnv = webEnv,
+                             retstart = cutMat[1, i],
+                             retmax = 500,
+                             retmode = 'xml')
     eachFetchXml <- read_xml(eachFetchStr)
     childXml <- xml_find_all(eachFetchXml, 'Taxon')
 
@@ -147,19 +147,19 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1) {
   cutMat <- cutMat - 1
 
   ## fetch url base
-  fetchUrlBase <- 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi'
+  fetchUrlBase <- EUrl('esummary')
   key = infoPost$QueryKey
   webEnv = infoPost$WebEnv
   
   geneInfo <- foreach (i = 1:ncol(cutMat), .combine = c) %do% {
     
-    eachFetchStr <-  postForm(uri = fetchUrlBase,
-                              db = 'gene',
-                              query_key = key,
-                              WebEnv = webEnv,
-                              retstart = cutMat[1, i],
-                              retmax = 500,
-                              retmode = 'xml')
+    eachFetchStr <- postForm(uri = fetchUrlBase,
+                             db = 'gene',
+                             query_key = key,
+                             WebEnv = webEnv,
+                             retstart = cutMat[1, i],
+                             retmax = 500,
+                             retmode = 'xml')
     eachFetchXml <- read_xml(eachFetchStr)
     childXml <- xml_find_all(eachFetchXml, 'DocumentSummarySet/DocumentSummary')
 
@@ -222,4 +222,88 @@ singleGeneInfo <- function(geneXml) {
   }
 
   return(geneInfo)
+}
+
+
+
+##' NCBI Database API - Get single NCBI whole genomic gene annotation
+##'
+##' Get whole gene annotation form single NCBI genome ID. The locus tag is used as names for each gene.
+##' @title Get single NCBI whole genomic gene annotation
+##' @param genomeID Single NCBI genome ID.
+##' @param type "gene" or "CDS".
+##' @inheritParams getNCBIGenesInfo
+##' @return A list of annotation.
+##' @examples
+##' \dontrun{
+##' aeuGenome <- singleGenomeAnno('CP007715', n = 4)}
+##' @importFrom RCurl postForm
+##' @importFrom xml2 read_xml
+##' @importFrom foreach foreach %dopar%
+##' @importFrom doParallel registerDoParallel stopImplicitCluster
+##' @author Yulong Niu \email{niuylscu@@gmail.com}
+##' @export
+##'
+##' 
+singleGenomeAnno <- function(genomeID, type = 'CDS', n = 1) {
+
+
+  getEachAnno <- function(featureNode) {
+    ## USE: extact annotation from each node
+    ## INPUT: `featureNode` is the child node in xml format
+    ## OUTPUT: A list of gene annotation
+    
+    loc <- BatchXmlText(featureNode, './/', c('GBInterval_from', 'GBInterval_to'))
+    loc <- do.call(cbind, loc)
+
+    GBNodes <- BatchXmlText(featureNode, './/', c('GBQualifier_name', 'GBQualifier_value'))
+    GBNodes <- do.call(cbind, GBNodes)
+    GBNodes[, 2] <- gsub('\\n', '', GBNodes[, 2])
+    
+    geneAnno <- list(GBInterval = loc,
+                     GBFeature_quals = GBNodes)
+
+    return(geneAnno)
+  }
+
+  ## register multiple core
+  registerDoParallel(cores = n)
+
+  ##~~~~~~~~~~~~~~~~~~~load in whole genomic annotation~~~~~~~~~~~~
+  urlBase <- EUrl('efetch')
+  postList <- list(db = 'nuccore',
+                   id = 'CP007715',
+                   retmode = 'xml')
+
+  annoStr <- postForm(urlBase, .params = postList)
+  annoXml <- read_xml(annoStr)
+
+  ## extract annotation node
+  annoNode <- xml_find_all(annoXml, 'GBSeq/GBSeq_feature-table')
+
+  ## extract keys
+  keys <- xml_text(xml_find_all(annoNode, './/GBFeature_key'))
+  rightKeys <- which(keys == type)
+  annoChild <- xml_children(annoNode)[rightKeys]
+  
+  ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  ##~~~~~~~~~~~~~~~~~~extract features~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  annoList <- foreach(i = 1:length(annoChild)) %dopar% {
+    eachAnno <- getEachAnno(annoChild[[i]])
+  }
+  
+  locusName <- sapply(annoList, function(x) {
+    eachLocus <- x[[2]]
+    eachLocus <- eachLocus[eachLocus[, 1] == 'locus_tag', 2]
+    return(eachLocus)
+  })
+
+  names(annoList) <- locusName
+  ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  ## stop multiple core
+  stopImplicitCluster()
+
+  return(annoList)
 }
