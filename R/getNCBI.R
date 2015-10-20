@@ -272,7 +272,7 @@ singleGenomeAnno <- function(genomeID, type = 'CDS', n = 1) {
   ##~~~~~~~~~~~~~~~~~~~load in whole genomic annotation~~~~~~~~~~~~
   urlBase <- EUrl('efetch')
   postList <- list(db = 'nuccore',
-                   id = 'CP007715',
+                   id = genomeID,
                    retmode = 'xml')
 
   annoStr <- postForm(urlBase, .params = postList)
