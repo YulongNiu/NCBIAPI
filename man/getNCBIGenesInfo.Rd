@@ -4,12 +4,14 @@
 \alias{getNCBIGenesInfo}
 \title{Get NCBI genes information}
 \usage{
-getNCBIGenesInfo(NCBIGeneIDs, n = 1)
+getNCBIGenesInfo(NCBIGeneIDs, n = 1, maxEach = 5000)
 }
 \arguments{
 \item{NCBIGeneIDs}{A vector of NCBI gene IDs.}
 
 \item{n}{The number of CPUs or processors, and the default value is 1.}
+
+\item{maxEach}{The maximum retrieve number in each visit. The ESearch, EFetch, and ESummary, the max number in one query is 10,000.}
 }
 \value{
 A list containing gene information for each ID. A empty character vector (whose length is 0) will be returned for the items if the contents are not found.

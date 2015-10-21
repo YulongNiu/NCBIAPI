@@ -18,7 +18,7 @@
 ##' @export
 ##'
 ##' 
-getNCBITaxo <- function(NCBITaxoIDs, n = 1) {
+getNCBITaxo <- function(NCBITaxoIDs, n = 1, maxEach = 5000) {
 
   ## register multiple core
   registerDoParallel(cores = n)
@@ -31,8 +31,7 @@ getNCBITaxo <- function(NCBITaxoIDs, n = 1) {
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   ##~~~~~~~~~~~~~~~~~~~~~~ESummary~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## For EFetch, the max number in one query is 10,000. The input gene IDs is splited every 500.
-  cutMat <- CutSeqEqu(length(NCBITaxoIDs), 500)
+  cutMat <- CutSeqEqu(length(NCBITaxoIDs), maxEach)
   ## The start number is from 0.
   cutMat <- cutMat - 1
 
@@ -47,7 +46,7 @@ getNCBITaxo <- function(NCBITaxoIDs, n = 1) {
                              query_key = key,
                              WebEnv = webEnv,
                              retstart = cutMat[1, i],
-                             retmax = 500,
+                             retmax = maxEach,
                              retmode = 'xml')
     eachFetchXml <- read_xml(eachFetchStr)
     childXml <- xml_find_all(eachFetchXml, 'Taxon')
@@ -101,6 +100,7 @@ singleTaxoInfo <- function(taxoXml) {
 ##' @title Get NCBI genes information
 ##' @param NCBIGeneIDs A vector of NCBI gene IDs.
 ##' @param n The number of CPUs or processors, and the default value is 1.
+##' @param maxEach The maximum retrieve number in each visit. The ESearch, EFetch, and ESummary, the max number in one query is 10,000.
 ##' @return A list containing gene information for each ID. A empty character vector (whose length is 0) will be returned for the items if the contents are not found.
 ##' @examples
 ##' gene3 <- getNCBIGenesInfo(c('100286922', '948242', '15486644'), n = 2)
@@ -128,7 +128,7 @@ singleTaxoInfo <- function(taxoXml) {
 ##' @export
 ##'
 ##' 
-getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1) {
+getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1, maxEach = 5000) {
 
   ## register multiple core
   registerDoParallel(cores = n)
@@ -141,8 +141,7 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1) {
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   ##~~~~~~~~~~~~~~~~~~~~~~ESummary~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## For EFetch, the max number in one query is 10,000. The input gene IDs is splited every 500.
-  cutMat <- CutSeqEqu(length(NCBIGeneIDs), 500)
+  cutMat <- CutSeqEqu(length(NCBIGeneIDs), maxEach)
   ## The start number is from 0.
   cutMat <- cutMat - 1
 
@@ -158,7 +157,7 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1) {
                              query_key = key,
                              WebEnv = webEnv,
                              retstart = cutMat[1, i],
-                             retmax = 500,
+                             retmax = maxEach,
                              retmode = 'xml')
     eachFetchXml <- read_xml(eachFetchStr)
     childXml <- xml_find_all(eachFetchXml, 'DocumentSummarySet/DocumentSummary')

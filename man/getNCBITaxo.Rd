@@ -4,12 +4,14 @@
 \alias{getNCBITaxo}
 \title{Get NCBI taxonomy information}
 \usage{
-getNCBITaxo(NCBITaxoIDs, n = 1)
+getNCBITaxo(NCBITaxoIDs, n = 1, maxEach = 5000)
 }
 \arguments{
 \item{NCBITaxoIDs}{A vector of NCBI taxonomy IDs.}
 
 \item{n}{The number of CPUs or processors, and the default value is 1.}
+
+\item{maxEach}{The maximum retrieve number in each visit. The ESearch, EFetch, and ESummary, the max number in one query is 10,000.}
 }
 \value{
 A list containing taxonomy information for each ID.
