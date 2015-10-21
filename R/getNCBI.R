@@ -228,7 +228,7 @@ singleGeneInfo <- function(geneXml) {
 
 ##' NCBI Database API - Get single NCBI whole genomic gene annotation
 ##'
-##' Get whole gene annotation form single NCBI genome ID. The locus tag is used as names for each gene.
+##' Get whole gene annotation form single NCBI genome ID. The locus tag is used as names for each gene. If the the value is missed, a "" (with length of 1) will return.
 ##' @title Get single NCBI whole genomic gene annotation
 ##' @param genomeID Single NCBI genome ID.
 ##' @param type "gene" or "CDS". The KEGG database use "CDS" as the protein gene count.
@@ -236,7 +236,10 @@ singleGeneInfo <- function(geneXml) {
 ##' @return A list of annotation.
 ##' @examples
 ##' \dontrun{
-##' aeuGenome <- singleGenomeAnno('CP007715', n = 4)}
+##' aeuGenome <- singleGenomeAnno('CP007715', n = 4)
+##'
+##' ## missed value is replaced by ''
+##' singleGenomeAnno('AE001826')[50]}
 ##' @importFrom RCurl postForm
 ##' @importFrom xml2 read_xml
 ##' @importFrom foreach foreach %dopar%
@@ -252,16 +255,27 @@ singleGenomeAnno <- function(genomeID, type = 'CDS', n = 1) {
     ## USE: extact annotation from each node
     ## INPUT: `featureNode` is the child node in xml format
     ## OUTPUT: A list of gene annotation
-    
-    loc <- BatchXmlText(featureNode, './/', c('GBInterval_from', 'GBInterval_to'))
+
+    locNode <- xml_find_all(featureNode, 'GBFeature_intervals/GBInterval')
+    loc <- BatchXmlText(locNode, './/', c('GBInterval_from', 'GBInterval_to'))
     loc <- do.call(cbind, loc)
 
-    GBNodes <- BatchXmlText(featureNode, './/', c('GBQualifier_name', 'GBQualifier_value'))
-    GBNodes <- do.call(cbind, GBNodes)
-    GBNodes[, 2] <- gsub('\\n', '', GBNodes[, 2])
+    GBNodes <- xml_find_all(featureNode, 'GBFeature_quals/GBQualifier')
+    GBf <- lapply(GBNodes, function(x) {
+      ## value may be missed, for example a <psedudo>
+      ## example: singleGenomeAnno('AE001826')[50]
+      eachGB <- BatchXmlText(x, '', c('GBQualifier_name', 'GBQualifier_value'))
+      ## '' may be assighed to multiple elements
+      eachGB[which(sapply(eachGB, length) == 0)] <- ''
+      eachGB <- unlist(eachGB)
+      return(eachGB)
+    })
+    
+    GBf <- do.call(rbind, GBf)
+    GBf[, 2] <- gsub('\\n', '', GBf[, 2])
     
     geneAnno <- list(GBInterval = loc,
-                     GBFeature_quals = GBNodes)
+                     GBFeature_quals = GBf)
 
     return(geneAnno)
   }
