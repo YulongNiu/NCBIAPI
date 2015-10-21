@@ -20,11 +20,14 @@ A list of annotation.
 NCBI Database API - Get single NCBI whole genomic gene annotation
 }
 \details{
-Get whole gene annotation form single NCBI genome ID. The locus tag is used as names for each gene.
+Get whole gene annotation form single NCBI genome ID. The locus tag is used as names for each gene. If the the value is missed, a "" (with length of 1) will return.
 }
 \examples{
 \dontrun{
-aeuGenome <- singleGenomeAnno('CP007715', n = 4)}
+aeuGenome <- singleGenomeAnno('CP007715', n = 4)
+
+## missed value is replaced by ''
+singleGenomeAnno('AE001826')[50]}
 }
 \author{
 Yulong Niu \email{niuylscu@gmail.com}
