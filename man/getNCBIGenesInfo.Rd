@@ -4,7 +4,7 @@
 \alias{getNCBIGenesInfo}
 \title{Get NCBI genes information}
 \usage{
-getNCBIGenesInfo(NCBIGeneIDs, n = 1, maxEach = 5000)
+getNCBIGenesInfo(NCBIGeneIDs, n = 1, maxEach = 10000)
 }
 \arguments{
 \item{NCBIGeneIDs}{A vector of NCBI gene IDs.}

@@ -4,7 +4,7 @@
 \alias{getNCBITaxo}
 \title{Get NCBI taxonomy information}
 \usage{
-getNCBITaxo(NCBITaxoIDs, n = 1, maxEach = 5000)
+getNCBITaxo(NCBITaxoIDs, n = 1, maxEach = 10000)
 }
 \arguments{
 \item{NCBITaxoIDs}{A vector of NCBI taxonomy IDs.}

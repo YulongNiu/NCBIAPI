@@ -18,7 +18,7 @@
 ##' @export
 ##'
 ##' 
-getNCBITaxo <- function(NCBITaxoIDs, n = 1, maxEach = 5000) {
+getNCBITaxo <- function(NCBITaxoIDs, n = 1, maxEach = 10000) {
 
   ## register multiple core
   registerDoParallel(cores = n)
@@ -128,7 +128,7 @@ singleTaxoInfo <- function(taxoXml) {
 ##' @export
 ##'
 ##' 
-getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1, maxEach = 5000) {
+getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1, maxEach = 10000) {
 
   ## register multiple core
   registerDoParallel(cores = n)
@@ -227,7 +227,8 @@ singleGeneInfo <- function(geneXml) {
 
 ##' NCBI Database API - Get single NCBI whole genomic gene annotation
 ##'
-##' Get whole gene annotation form single NCBI genome ID. The locus tag is used as names for each gene. If the the value is missed, a "" (with length of 1) will return.
+##' Get whole gene annotation form single NCBI genome ID. The locus tag is used as names for each gene. If one of the gene feature value is missed, a "" (with length of 1) will return.
+##' This function now supports two feature types, "gene" or "CDS" (coding sequence). Other features such as RNAs ("ncRNA", "rRNA", "tRNA", "tmRNA"), "misc_feature", "rep_origin", "repeat_region" are not supported yet. It is shown in E. coli K-12 MG1655 "genes" features not only includes all "CDS" and RNAs, but some sRNA ("b4714"). "misc_feature" are mainly about cryptic prophage genes, and "repeat_region" are repetitive extragentic palindromic (REP) elements.
 ##' @title Get single NCBI whole genomic gene annotation
 ##' @param genomeID Single NCBI genome ID.
 ##' @param type "gene" or "CDS". The KEGG database use "CDS" as the protein gene count.
@@ -247,7 +248,7 @@ singleGeneInfo <- function(geneXml) {
 ##' @export
 ##'
 ##' 
-singleGenomeAnno <- function(genomeID, type = 'CDS', n = 1) {
+singleGenomeAnno <- function(genomeID, type = 'gene', n = 1) {
 
 
   getEachAnno <- function(featureNode) {
