@@ -227,7 +227,7 @@ singleGeneInfo <- function(geneXml) {
 
 ##' NCBI Database API - Get single NCBI whole genomic gene annotation
 ##'
-##' Get whole gene annotation form single NCBI genome ID. The locus tag is used as names for each gene. If one of the gene feature value is missed, a "" (with length of 1) will return.
+##' Get whole gene annotation form single NCBI genome ID. The locus tag is used as names for each gene. If one of the gene feature value is missed, a "" (with length of 1) will return. If the genome has no gene featurs, "NULL" will be returned.
 ##' This function now supports two feature types, "gene" or "CDS" (coding sequence). Other features such as RNAs ("ncRNA", "rRNA", "tRNA", "tmRNA"), "misc_feature", "rep_origin", "repeat_region" are not supported yet. It is shown in E. coli K-12 MG1655 "genes" features not only includes all "CDS" and RNAs, but some sRNA ("b4714"). "misc_feature" are mainly about cryptic prophage genes, and "repeat_region" are repetitive extragentic palindromic (REP) elements.
 ##' @title Get single NCBI whole genomic gene annotation
 ##' @param genomeID Single NCBI genome ID.
@@ -235,11 +235,14 @@ singleGeneInfo <- function(geneXml) {
 ##' @inheritParams getNCBIGenesInfo
 ##' @return A list of annotation.
 ##' @examples
+##' ## no gene features
+##' nofeature <- singleGenomeAnno('BA000048')
+##' 
 ##' \dontrun{
 ##' aeuGenome <- singleGenomeAnno('CP007715', n = 4)
 ##'
 ##' ## missed value is replaced by ''
-##' singleGenomeAnno('AE001826')[50]}
+##' pseudo <- singleGenomeAnno('AE001826')[54]}
 ##' @importFrom RCurl postForm
 ##' @importFrom xml2 read_xml
 ##' @importFrom foreach foreach %dopar%
@@ -291,30 +294,35 @@ singleGenomeAnno <- function(genomeID, type = 'gene', n = 1) {
 
   annoStr <- postForm(urlBase, .params = postList)
   annoXml <- read_xml(annoStr)
-
-  ## extract annotation node
-  annoNode <- xml_find_all(annoXml, 'GBSeq/GBSeq_feature-table')
-
-  ## extract keys
-  keys <- xml_text(xml_find_all(annoNode, './/GBFeature_key'))
-  rightKeys <- which(keys == type)
-  annoChild <- xml_children(annoNode)[rightKeys]
-  
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  ##~~~~~~~~~~~~~~~~~~extract features~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  annoList <- foreach(i = 1:length(annoChild)) %dopar% {
-    eachAnno <- getEachAnno(annoChild[[i]])
-  }
-  
-  locusName <- sapply(annoList, function(x) {
-    eachLocus <- x[[2]]
-    eachLocus <- eachLocus[eachLocus[, 1] == 'locus_tag', 2]
-    return(eachLocus)
-  })
+  ## extract annotation node and keys
+  annoNode <- xml_find_all(annoXml, 'GBSeq/GBSeq_feature-table')
+  keys <- xml_text(xml_find_all(annoNode, './/GBFeature_key'))
 
-  names(annoList) <- locusName
-  ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## may be no gene features
+  if (length(keys) == 1) {
+    ## only one key that is "source", and return NULL
+    annoList <- NULL
+  } else {
+    
+    rightKeys <- which(keys == type)
+    annoChild <- xml_children(annoNode)[rightKeys]
+  
+    ##~~~~~~~~~~~~~~~~~~extract features~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    annoList <- foreach(i = 1:length(annoChild)) %dopar% {
+      eachAnno <- getEachAnno(annoChild[[i]])
+    }
+    
+    locusName <- sapply(annoList, function(x) {
+      eachLocus <- x[[2]]
+      eachLocus <- eachLocus[eachLocus[, 1] == 'locus_tag', 2]
+      return(eachLocus)
+    })
+
+    names(annoList) <- locusName
+    ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  }
 
   ## stop multiple core
   stopImplicitCluster()
