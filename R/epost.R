@@ -13,12 +13,11 @@
 ##' @references Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
 ##' @export
 ##'
-##' 
 EPostNCBI <- function(postPara, ...) {
-  
+
   ## NCBI EPost url
   urlBase <- EUrl('epost')
-  
+
   ## HTTP POST with EPost
   postStr <- postForm(uri = urlBase, .params = postPara)
   postXml <- read_xml(postStr)

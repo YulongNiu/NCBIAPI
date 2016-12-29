@@ -17,7 +17,7 @@
 ##' @references Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
 ##' @export
 ##'
-##' 
+##'
 getNCBITaxo <- function(NCBITaxoIDs, n = 1, maxEach = 10000) {
 
   ## register multiple core

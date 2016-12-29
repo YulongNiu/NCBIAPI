@@ -9,10 +9,10 @@
 ##' @author Yulong Niu \email{niuylscu@@gmail.com}
 ##' @export
 ##'
-##' 
+##'
 EUrl <- function(eutils) {
-  
-  wrapUrl <- paste0('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/', eutils, '.fcgi')
+
+  wrapUrl <- paste0('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/', eutils, '.fcgi')
 
   return(wrapUrl)
 }
