@@ -4,7 +4,7 @@
 ##' @title Get mRNA accession number from gene id for one gene
 ##' @return NA or mRNA accession number
 ##' @author Yulong Niu \email{niuylscu@@gmail.com}
-##' @inheritParams signleGeneInfo
+##' @inheritParams singleGeneInfo
 ##' @importFrom xml2 xml_find_all
 ##' @keywords internal
 ##'

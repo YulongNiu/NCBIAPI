@@ -2,6 +2,7 @@
 
 export(EPostNCBI)
 export(EUrl)
+export(geneid2mRNAid)
 export(getNCBIGenesInfo)
 export(getNCBITaxo)
 export(singleGenomeAnno)
