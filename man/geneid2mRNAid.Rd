@@ -7,7 +7,7 @@
 geneid2mRNAid(NCBIGeneIDs, n = 1, maxEach = 10000)
 }
 \arguments{
-\item{NCBIGeneIDs}{A vector of NCBI gene IDs.}
+\item{NCBIGeneIDs}{A vector of NCBI gene or protein IDs.}
 
 \item{n}{The number of CPUs or processors, and the default value is 1.}
 
@@ -26,11 +26,10 @@ Get NCBI mRNA accession number
 geneid2mRNAid(c('100286922', '948242', '15486644'), n = 2)
 
 }
+\references{
+Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
+}
 \author{
 Yulong Niu \email{niuylscu@gmail.com}
 ##' @importFrom RCurl postForm
 }
-\references{
-Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
-}
-

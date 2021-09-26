@@ -36,4 +36,3 @@ pseudo <- singleGenomeAnno('AE001826')[54]}
 \author{
 Yulong Niu \email{niuylscu@gmail.com}
 }
-

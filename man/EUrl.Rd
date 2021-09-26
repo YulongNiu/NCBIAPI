@@ -24,4 +24,3 @@ efetchUrl <- EUrl("efetch")
 \author{
 Yulong Niu \email{niuylscu@gmail.com}
 }
-

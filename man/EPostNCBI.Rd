@@ -24,10 +24,9 @@ NCBI EPost provide thousands of queries in one HTTP POST.
 genePara <- list(db = "gene", id="948242,15486644")
 genePost <- EPostNCBI(genePara)
 }
-\author{
-Yulong Niu \email{niuylscu@gmail.com}
-}
 \references{
 Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
 }
-
+\author{
+Yulong Niu \email{niuylscu@gmail.com}
+}

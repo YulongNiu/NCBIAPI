@@ -22,4 +22,3 @@ Get mRNA accession number.
 Yulong Niu \email{niuylscu@gmail.com}
 }
 \keyword{internal}
-

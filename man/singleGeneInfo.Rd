@@ -22,4 +22,3 @@ Get gene information form single NCBI gene ID.
 Yulong Niu \email{niuylscu@gmail.com}
 }
 \keyword{internal}
-

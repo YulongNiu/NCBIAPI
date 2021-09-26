@@ -26,10 +26,9 @@ Get NCBI taxonomy information.
 ## with two cores
 tax3 <- getNCBITaxo(c('9606', '511145', '797302'), n = 2)
 }
-\author{
-Yulong Niu \email{niuylscu@gmail.com}
-}
 \references{
 Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
 }
-
+\author{
+Yulong Niu \email{niuylscu@gmail.com}
+}

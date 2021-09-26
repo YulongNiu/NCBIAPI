@@ -26,4 +26,3 @@ Retrieve xml context by xPath.
 Yulong Niu \email{niuylscu@gmail.com}
 }
 \keyword{internal}
-

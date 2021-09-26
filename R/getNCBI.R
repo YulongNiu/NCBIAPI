@@ -98,7 +98,8 @@ singleTaxoInfo <- function(taxoXml) {
 ##'
 ##' Get NCBI gene information, including gene name, description, genetic source, aliases, gene location. To retrieve thousands of proteins, use EPost to post record into the web server and then retrieve data using ESummary. If the gene ID is not found, return an error information in the list.
 ##' @title Get NCBI genes information
-##' @param NCBIGeneIDs A vector of NCBI gene IDs.
+##' @param NCBIGeneIDs A vector of NCBI gene or protein IDs.
+##' @param type Character string either "protein" or "gene".
 ##' @param n The number of CPUs or processors, and the default value is 1.
 ##' @param maxEach The maximum retrieve number in each visit. The ESearch, EFetch, and ESummary, the max number in one query is 10,000.
 ##' @return A list containing gene information for each ID. A empty character vector (whose length is 0) will be returned for the items if the contents are not found.

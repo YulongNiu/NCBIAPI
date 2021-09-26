@@ -22,4 +22,3 @@ Get taxonomy information form single NCBI taxonomy ID.
 Yulong Niu \email{niuylscu@gmail.com}
 }
 \keyword{internal}
-

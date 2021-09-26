@@ -4,10 +4,12 @@
 \alias{getNCBIGenesInfo}
 \title{Get NCBI genes information}
 \usage{
-getNCBIGenesInfo(NCBIGeneIDs, n = 1, maxEach = 10000)
+getNCBIGenesInfo(NCBIGeneIDs, type = "gene", n = 1, maxEach = 10000)
 }
 \arguments{
-\item{NCBIGeneIDs}{A vector of NCBI gene IDs.}
+\item{NCBIGeneIDs}{A vector of NCBI gene or protein IDs.}
+
+\item{type}{Character string either "protein" or "gene".}
 
 \item{n}{The number of CPUs or processors, and the default value is 1.}
 
@@ -17,13 +19,14 @@ getNCBIGenesInfo(NCBIGeneIDs, n = 1, maxEach = 10000)
 A list containing gene information for each ID. A empty character vector (whose length is 0) will be returned for the items if the contents are not found.
 }
 \description{
-NCBI Database API - Get NCBI gene information from given NCBI gene IDs
+NCBI Database API - Get NCBI gene or protein information from given NCBI gene IDs
 }
 \details{
 Get NCBI gene information, including gene name, description, genetic source, aliases, gene location. To retrieve thousands of proteins, use EPost to post record into the web server and then retrieve data using ESummary. If the gene ID is not found, return an error information in the list.
 }
 \examples{
-gene3 <- getNCBIGenesInfo(c('100286922', '948242', '15486644'), n = 2)
+gene3 <- getNCBIGenesInfo(c('100286922', '948242', '15486644'), type = 'gene', n = 2)
+protein2 <- getNCBIGenesInfo(c('WP_084863515', 'BAI64724'), type = 'protein', n = 2)
 ## not found
 ghostInfo <- getNCBIGenesInfo('111111111', n = 1)
 \dontrun{
@@ -39,10 +42,9 @@ draGeneNames <- sapply(strsplit(draGenes[, 1], split = ':', fixed = TRUE), '[[',
 draInfo <- getNCBIGenesInfo(draGeneNames, n = 4)
 }
 }
-\author{
-Yulong Niu \email{niuylscu@gmail.com}
-}
 \references{
 Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
 }
-
+\author{
+Yulong Niu \email{niuylscu@gmail.com}
+}
