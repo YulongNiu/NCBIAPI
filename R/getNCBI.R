@@ -104,7 +104,7 @@ singleTaxoInfo <- function(taxoXml) {
 ##' @return A list containing gene information for each ID. A empty character vector (whose length is 0) will be returned for the items if the contents are not found.
 ##' @examples
 ##' gene3 <- getNCBIGenesInfo(c('100286922', '948242', '15486644'), type = 'gene', n = 2)
-##' protein2 <- getNCBIGenesInfo(c('MBF1669179', 'BAI64724'), type = 'protein', n = 2)
+##' protein2 <- getNCBIGenesInfo(c('WP_084863515', 'BAI64724'), type = 'protein', n = 2)
 ##' ## not found
 ##' ghostInfo <- getNCBIGenesInfo('111111111', n = 1)
 ##' \dontrun{
@@ -167,9 +167,13 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, type = 'gene', n = 1, maxEach = 10000)
 
     eachInfo <- foreach(j = 1 : length(childXml)) %dopar% {
 
-      singleInfo <- ifelse(type == 'gene',
-                           singleGeneInfo(childXml[[j]]),
-                           singleProteinInfo(childXml[[j]]))
+      if (type == 'gene') {
+        singleInfo <- singleGeneInfo(childXml[[j]])
+      }
+      else if (type == 'protein') {
+        singleInfo <- singleProteinInfo(childXml[[j]])
+      }
+      else {}
 
       return(singleInfo)
     }
@@ -293,7 +297,6 @@ singleProteinInfo <- function(proteinXml) {
 ##' @author Yulong Niu \email{niuylscu@@gmail.com}
 ##' @export
 ##'
-##' 
 singleGenomeAnno <- function(genomeID, type = 'gene', n = 1) {
 
 
