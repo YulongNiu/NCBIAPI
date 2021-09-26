@@ -1,6 +1,6 @@
 ##' NCBI Database API - Get NCBI taxonomy information from given NCBI taxonomy IDs
 ##'
-##' Get NCBI taxonomy information. 
+##' Get NCBI taxonomy information.
 ##' @title Get NCBI taxonomy information
 ##' @param NCBITaxoIDs A vector of NCBI taxonomy IDs.
 ##' @inheritParams getNCBIGenesInfo
@@ -52,7 +52,7 @@ getNCBITaxo <- function(NCBITaxoIDs, n = 1, maxEach = 10000) {
     childXml <- xml_find_all(eachFetchXml, 'Taxon')
 
     eachInfo <- foreach(j = 1 : length(childXml)) %dopar% {
-      
+
       singleInfo <- singleTaxoInfo(childXml[[j]])
 
       return(singleInfo)
@@ -60,12 +60,12 @@ getNCBITaxo <- function(NCBITaxoIDs, n = 1, maxEach = 10000) {
     ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     return(eachInfo)
   }
-  
+
   names(taxoInfo) <- NCBITaxoIDs
 
   ## stop multiple core
   stopImplicitCluster()
-  
+
   return(taxoInfo)
 }
 
@@ -79,7 +79,7 @@ getNCBITaxo <- function(NCBITaxoIDs, n = 1, maxEach = 10000) {
 ##' @author Yulong Niu \email{niuylscu@@gmail.com}
 ##' @keywords internal
 ##'
-##' 
+##'
 singleTaxoInfo <- function(taxoXml) {
 
   taxoPrefix <- './/'
@@ -94,7 +94,7 @@ singleTaxoInfo <- function(taxoXml) {
 
 
 
-##' NCBI Database API - Get NCBI gene information from given NCBI gene IDs
+##' NCBI Database API - Get NCBI gene or protein information from given NCBI gene IDs
 ##'
 ##' Get NCBI gene information, including gene name, description, genetic source, aliases, gene location. To retrieve thousands of proteins, use EPost to post record into the web server and then retrieve data using ESummary. If the gene ID is not found, return an error information in the list.
 ##' @title Get NCBI genes information
@@ -103,7 +103,8 @@ singleTaxoInfo <- function(taxoXml) {
 ##' @param maxEach The maximum retrieve number in each visit. The ESearch, EFetch, and ESummary, the max number in one query is 10,000.
 ##' @return A list containing gene information for each ID. A empty character vector (whose length is 0) will be returned for the items if the contents are not found.
 ##' @examples
-##' gene3 <- getNCBIGenesInfo(c('100286922', '948242', '15486644'), n = 2)
+##' gene3 <- getNCBIGenesInfo(c('100286922', '948242', '15486644'), type = 'gene', n = 2)
+##' protein2 <- getNCBIGenesInfo(c('MBF1669179', 'BAI64724'), type = 'protein', n = 2)
 ##' ## not found
 ##' ghostInfo <- getNCBIGenesInfo('111111111', n = 1)
 ##' \dontrun{
@@ -112,7 +113,7 @@ singleTaxoInfo <- function(taxoXml) {
 ##' smuGenes <- convKEGG('smu', 'ncbi-geneid')
 ##' smuGeneNames <- sapply(strsplit(smuGenes[, 1], split = ':', fixed = TRUE), '[[', 2)
 ##' smuInfo <- getNCBIGenesInfo(smuGeneNames, n = 4)
-##' 
+##'
 ##' ## two genomes with two plasmids
 ##' draGenes <- convKEGG('dra', 'ncbi-geneid')
 ##' draGeneNames <- sapply(strsplit(draGenes[, 1], split = ':', fixed = TRUE), '[[', 2)
@@ -127,8 +128,8 @@ singleTaxoInfo <- function(taxoXml) {
 ##' @references Entrez Programming Utilities Help \url{http://www.ncbi.nlm.nih.gov/books/NBK25499/}
 ##' @export
 ##'
-##' 
-getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1, maxEach = 10000) {
+##'
+getNCBIGenesInfo <- function(NCBIGeneIDs, type = 'gene', n = 1, maxEach = 10000) {
 
   ## register multiple core
   registerDoParallel(cores = n)
@@ -136,7 +137,7 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1, maxEach = 10000) {
   ##~~~~~~~~~~~~~~~~~~~~~~~~~EPost~~~~~~~~~~~~~~~~~~~~~~~
   ## compress gene IDs
   geneIDs <- paste(NCBIGeneIDs, collapse = ',')
-  infoPostPara <- list(db = 'gene', id = geneIDs)
+  infoPostPara <- list(db = type, id = geneIDs)
   infoPost <- EPostNCBI(infoPostPara)
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -149,22 +150,26 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1, maxEach = 10000) {
   fetchUrlBase <- EUrl('esummary')
   key = infoPost$QueryKey
   webEnv = infoPost$WebEnv
-  
+
   geneInfo <- foreach (i = 1:ncol(cutMat), .combine = c) %do% {
-    
+
     eachFetchStr <- postForm(uri = fetchUrlBase,
-                             db = 'gene',
+                             db = type,
                              query_key = key,
                              WebEnv = webEnv,
                              retstart = cutMat[1, i],
                              retmax = maxEach,
                              retmode = 'xml')
+
     eachFetchXml <- read_xml(eachFetchStr)
-    childXml <- xml_find_all(eachFetchXml, 'DocumentSummarySet/DocumentSummary')
+    topNode <- ifelse(type == 'gene', 'DocumentSummarySet/DocumentSummary', 'DocSum')
+    childXml <- xml_find_all(eachFetchXml, topNode)
 
     eachInfo <- foreach(j = 1 : length(childXml)) %dopar% {
-      
-      singleInfo <- singleGeneInfo(childXml[[j]])
+
+      singleInfo <- ifelse(type == 'gene',
+                           singleGeneInfo(childXml[[j]]),
+                           singleProteinInfo(childXml[[j]]))
 
       return(singleInfo)
     }
@@ -177,7 +182,7 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1, maxEach = 10000) {
 
   ## stop multiple core
   stopImplicitCluster()
-  
+
   return(geneInfo)
 }
 
@@ -192,13 +197,13 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, n = 1, maxEach = 10000) {
 ##' @importFrom xml2 xml_find_all xml_text
 ##' @keywords internal
 ##'
-##' 
+##'
 singleGeneInfo <- function(geneXml) {
 
   ## first check if the no candidate for input gene
   errorChild <- xml_find_all(geneXml, 'error')
   errorNum <- length(errorChild)
-  
+
   if (errorNum == 0) {
     ## gene summary
     docSumPrefix <- ''
@@ -224,6 +229,44 @@ singleGeneInfo <- function(geneXml) {
 }
 
 
+##' NCBI Database API - Get single NCBI protein information
+##'
+##' Get gene information form single NCBI protein ID.
+##' @title Get single NCBI protein information
+##' @param geneXml Gene xml data.
+##' @return A list of protein information.
+##' @author Yulong Niu \email{niuylscu@@gmail.com}
+##' @importFrom xml2 xml_find_all xml_text
+##' @importFrom magrittr %>%
+##' @importFrom stringr str_replace
+##' @keywords internal
+##'
+##'
+singleProteinInfo <- function(proteinXml) {
+
+  ## first check if the no candidate for input gene
+  errorText <- proteinXml %>%
+    xml_find_all('error') %>%
+    xml_text
+
+  if (length(errorText) > 0) {
+    proteinInfo <- errorText
+    return(proteinInfo)
+  } else {}
+
+  ## protein summary
+  itemsAtts <- c('Caption', 'Title', 'Extra', 'Gi', 'CreateDate', 'UpdateDate', 'Flags', 'TaxId', 'Length', 'Status')
+
+  proteinInfo <- sapply(itemsAtts, function(eachAttr) {
+    eachAttr %>%
+      str_replace('Item[@Name="Attrs"]', 'Attrs', .) %>%
+      xml_find_all(proteinXml, .) %>%
+      xml_text
+  })
+
+  return(proteinInfo)
+}
+
 
 ##' NCBI Database API - Get single NCBI whole genomic gene annotation
 ##'
@@ -237,7 +280,7 @@ singleGeneInfo <- function(geneXml) {
 ##' @examples
 ##' ## no gene features
 ##' nofeature <- singleGenomeAnno('BA000048')
-##' 
+##'
 ##' \dontrun{
 ##' aeuGenome <- singleGenomeAnno('CP007715', n = 4)
 ##'

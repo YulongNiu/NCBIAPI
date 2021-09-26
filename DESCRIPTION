@@ -1,7 +1,7 @@
 Package: NCBIAPI
 Title: A package for providing NCBI databases API in R
 Description: NCBI API.
-Version: 0.0.7
+Version: 0.0.8
 Author: Yulong Niu <niuylscu@gmail.com>
 Maintainer: Yulong Niu <niuylscu@gmail.com>
 Depends:
@@ -11,7 +11,9 @@ Imports:
     RCurl,
     xml2,
     doParallel,
-    foreach
+    foreach,
+    magrittr,
+    stringr
 ByteCompile: true
 License: GPL
 LazyData: true
