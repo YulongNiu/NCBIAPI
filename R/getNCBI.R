@@ -99,13 +99,14 @@ singleTaxoInfo <- function(taxoXml) {
 ##' Get NCBI gene information, including gene name, description, genetic source, aliases, gene location. To retrieve thousands of proteins, use EPost to post record into the web server and then retrieve data using ESummary. If the gene ID is not found, return an error information in the list.
 ##' @title Get NCBI genes information
 ##' @param NCBIGeneIDs A vector of NCBI gene or protein IDs.
-##' @param type Character string either "protein" or "gene".
+##' @param type Character string either "protein", "gene", "nuccore".
 ##' @param n The number of CPUs or processors, and the default value is 1.
 ##' @param maxEach The maximum retrieve number in each visit. The ESearch, EFetch, and ESummary, the max number in one query is 10,000.
 ##' @return A list containing gene information for each ID. A empty character vector (whose length is 0) will be returned for the items if the contents are not found.
 ##' @examples
 ##' gene3 <- getNCBIGenesInfo(c('100286922', '948242', '15486644'), type = 'gene', n = 2)
 ##' protein2 <- getNCBIGenesInfo(c('WP_084863515', 'BAI64724'), type = 'protein', n = 2)
+##' nuc3 <- getNCBIGenesInfo(c('AF538355.1', 'AY560609.1', 'CP048101.1'), type = 'nuccore')
 ##' ## not found
 ##' ghostInfo <- getNCBIGenesInfo('111111111', n = 1)
 ##' \dontrun{
@@ -168,10 +169,10 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, type = 'gene', n = 1, maxEach = 10000)
 
     eachInfo <- foreach(j = 1 : length(childXml)) %dopar% {
 
-      if (type == 'gene') {
+      if (type %in% c('gene')) {
         singleInfo <- singleGeneInfo(childXml[[j]])
       }
-      else if (type == 'protein') {
+      else if (type %in% c('protein', 'nuccore')) {
         singleInfo <- singleProteinInfo(childXml[[j]])
       }
       else {}
@@ -200,35 +201,36 @@ getNCBIGenesInfo <- function(NCBIGeneIDs, type = 'gene', n = 1, maxEach = 10000)
 ##' @return A list of gene information.
 ##' @author Yulong Niu \email{niuylscu@@gmail.com}
 ##' @importFrom xml2 xml_find_all xml_text
+##' @importFrom magrittr %>%
 ##' @keywords internal
 ##'
 ##'
 singleGeneInfo <- function(geneXml) {
 
   ## first check if the no candidate for input gene
-  errorChild <- xml_find_all(geneXml, 'error')
-  errorNum <- length(errorChild)
+  errorText <- geneXml %>%
+    xml_find_all('error') %>%
+    xml_text
 
-  if (errorNum == 0) {
-    ## gene summary
-    docSumPrefix <- ''
-    docSumItems <- c('Name', 'Description', 'Chromosome', 'GeneticSource', 'MapLocation', 'OtherAliases')
-    geneInfo <- BatchXmlText(geneXml, docSumPrefix, docSumItems)
+  if (length(errorText) > 0) {
+    geneInfo <- errorText
+    return(geneInfo)
+  } else {}
 
-    ## gene location
-    ## LocationHist also includes gene location which is not what we want
-    locPrefix <- 'GenomicInfo/GenomicInfoType/'
-    locItems <- c('ChrLoc', 'ChrAccVer', 'ChrStart', 'ChrStop', 'ExonCount')
-    locText <- BatchXmlText(geneXml, locPrefix, locItems)
-    locMat <- do.call(cbind, locText)
+  ## gene summary
+  docSumPrefix <- ''
+  docSumItems <- c('Name', 'Description', 'Chromosome', 'GeneticSource', 'MapLocation', 'OtherAliases')
+  geneInfo <- BatchXmlText(geneXml, docSumPrefix, docSumItems)
 
-    ## combine summary and gene location
-    geneInfo$GenomicInfo = locMat
-  }
-  else if (errorNum > 0) {
-    ## return error info
-    geneInfo <- xml_text(errorChild)
-  }
+  ## gene location
+  ## LocationHist also includes gene location which is not what we want
+  locPrefix <- 'GenomicInfo/GenomicInfoType/'
+  locItems <- c('ChrLoc', 'ChrAccVer', 'ChrStart', 'ChrStop', 'ExonCount')
+  locText <- BatchXmlText(geneXml, locPrefix, locItems)
+  locMat <- do.call(cbind, locText)
+
+  ## combine summary and gene location
+  geneInfo$GenomicInfo = locMat
 
   return(geneInfo)
 }

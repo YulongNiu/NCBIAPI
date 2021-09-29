@@ -9,7 +9,7 @@ getNCBIGenesInfo(NCBIGeneIDs, type = "gene", n = 1, maxEach = 10000)
 \arguments{
 \item{NCBIGeneIDs}{A vector of NCBI gene or protein IDs.}
 
-\item{type}{Character string either "protein" or "gene".}
+\item{type}{Character string either "protein", "gene", "nuccore".}
 
 \item{n}{The number of CPUs or processors, and the default value is 1.}
 
@@ -27,6 +27,7 @@ Get NCBI gene information, including gene name, description, genetic source, ali
 \examples{
 gene3 <- getNCBIGenesInfo(c('100286922', '948242', '15486644'), type = 'gene', n = 2)
 protein2 <- getNCBIGenesInfo(c('WP_084863515', 'BAI64724'), type = 'protein', n = 2)
+nuc3 <- getNCBIGenesInfo(c('AF538355.1', 'AY560609.1', 'CP048101.1'), type = 'nuccore')
 ## not found
 ghostInfo <- getNCBIGenesInfo('111111111', n = 1)
 \dontrun{
