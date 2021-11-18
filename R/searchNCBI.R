@@ -31,3 +31,6 @@ searchNCBILocus <- function(NCBILocusID, type = 'gene') {
 
   return(geneID)
 }
+
+
+
